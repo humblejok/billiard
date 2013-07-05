@@ -164,14 +164,9 @@ Billiard_conn_poll(BilliardConnectionObject *conn, double timeout, PyThreadState
 static ssize_t
 _Billiard_conn_send_offset(HANDLE fd, char *string, Py_ssize_t len, Py_ssize_t offset) {
     char *p = string;
-    ssize_t res = 0;
     p += offset;
 
-    _Billiard_sockblock(fd, 0);
-    res = WRITE(fd, p, (size_t)len - offset);
-    _Billiard_sockblock(fd, 1);
-    return res;
+    return WRITE(fd, p, (size_t)len - offset);
 }
-
 
 #include "connection.h"
