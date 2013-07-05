@@ -11,6 +11,18 @@
 #define CLOSE(h) CloseHandle(h)
 
 /*
+ * DIRTY HACK PART 1 to be able to compile on a Windows platform.
+*/
+#ifdef MS_WINDOWS
+#  define WRITE(h, buffer, length) send((SOCKET)h, buffer, length, 0)
+#  define READ(h, buffer, length) recv((SOCKET)h, buffer, length, 0)
+#endif
+
+
+
+#define CLOSE(h) CloseHandle(h)
+
+/*
  * Send string to the pipe; assumes in message oriented mode
  */
 
@@ -145,5 +157,21 @@ Billiard_conn_poll(BilliardConnectionObject *conn, double timeout, PyThreadState
 
 #define CONNECTION_NAME "PipeConnection"
 #define CONNECTION_TYPE BilliardPipeConnectionType
+
+/*
+ * DIRTY HACK PART 2 Repeat an existing function to get the linkage working on Windows platform.
+ */
+static ssize_t
+_Billiard_conn_send_offset(HANDLE fd, char *string, Py_ssize_t len, Py_ssize_t offset) {
+    char *p = string;
+    ssize_t res = 0;
+    p += offset;
+
+    _Billiard_sockblock(fd, 0);
+    res = WRITE(fd, p, (size_t)len - offset);
+    _Billiard_sockblock(fd, 1);
+    return res;
+}
+
 
 #include "connection.h"
